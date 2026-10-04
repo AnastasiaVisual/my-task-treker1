@@ -1,0 +1,71 @@
+{% load static %}
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{% static 'tasks/style.css' %}">
+</head>
+<body>
+    <h1>Мои привычки</h1>
+{% block content %}
+ <button onclick="document.getElementById('add-task-modal').showModal()"> + Добавить задачу</button>
+
+    <dialog id="add-task-modal">
+        <form id="task-form" method="post" action="{% url 'task_create' %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit">Сохранить</button>
+            <button type="button" onclick="document.getElementById('add-task-modal').close()">Отмена</button>
+        </form>
+    </dialog>
+
+
+    <ul id="task-list-ul">
+        {% for task in tasks %}
+            <li class="{% if task.is_done %}done{% endif %}">
+                <span>{{ task.title }} ({{ task.category }}), срок: {{ task.deadline|date:"d.m.Y" }}</span>
+                <form method="post" action="{% url 'task-toggle' task.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="done-circle {% if task.is_done %}checked{% endif %}"></button>
+                </form>
+            </li>
+        {% empty %}
+            <li>Пока нет задач</li>
+        {% endfor %}
+    </ul>
+
+
+
+<script>
+document.getElementById('task-form').addEventListener('submit', function (event) {
+    event.preventDefault();  // не даём браузеру перезагрузить страницу
+
+    const form = event.target;
+    const formData = new FormData(form);  // собираем данные формы автоматически
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+    })
+        .then(response => response.json())
+        .then(data => { //работаем с данными, которые вернул сервер
+            if (data.success) {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${data.title} (${data.category}), срок: ${data.deadline}</span>`;
+                document.getElementById('task-list-ul').appendChild(li);
+
+                form.reset(); //очищаем поля формы
+                document.getElementById('add-task-modal').close();
+            } else {
+                alert('Проверьте поля формы, что-то заполнено неверно.');
+            }
+        });
+});
+</script>
+
+
+{% endblock %} 
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Выйти</button>  
+    </form> 
+</body>
+</html>

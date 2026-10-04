@@ -52,11 +52,12 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'config.urls'
+WSGI_APPLICATION = "config.wsgi.application"
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -127,3 +128,6 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+LOGIN_REDIRECT_URL = "habit-list"
+LOGOUT_REDIRECT_URL = "login"
