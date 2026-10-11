@@ -11,7 +11,21 @@
     <dialog id="add-task-modal">
         <form id="task-form" method="post" action="{% url 'task_create' %}">
             {% csrf_token %}
-            {{ form.as_p }}
+            <p>{{ form.title.label_tag }} {{ form.title }}</p>
+            <p>{{ form.description.label_tag }} {{ form.description }}</p>
+            
+            
+            <div class="combo">
+                {{ form.category.label_tag }} {{ form.category }}
+                <div class="combo-list" hidden>
+                    {% for c in categories %}
+                        <div class="combo-item" data-value="{{ c }}">{{ c }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+           
+            <p>{{ form.deadline.label_tag }}   {{ form.deadline }}</p>
+
             <button type="submit">Сохранить</button>
             <button type="button" onclick="document.getElementById('add-task-modal').close()">Отмена</button>
         </form>
@@ -58,6 +72,42 @@ document.getElementById('task-form').addEventListener('submit', function (event)
                 alert('Проверьте поля формы, что-то заполнено неверно.');
             }
         });
+});
+// Компонент "комбо-бокс" для выбора категории
+document.querySelectorAll('.combo').forEach(combo => {
+    const input = combo.querySelector('input');
+    const list = combo.querySelector('.combo-list');
+    const items = [...list.querySelectorAll('.combo-item')];
+
+    // фильтруем варианты по набранному тексту
+    function filter() {
+        const q = input.value.trim().toLowerCase();
+        let visible = 0;
+        items.forEach(item => {
+            const show = item.dataset.value.toLowerCase().includes(q);
+            item.hidden = !show;
+            if (show) visible++;
+        });
+        list.hidden = visible === 0;
+    }
+
+    input.addEventListener('focus', () => {
+        items.forEach(item => item.hidden = false);
+        list.hidden = false;
+    });
+    input.addEventListener('input', filter);
+
+    // выбор варианта: записываем значение в поле
+    list.addEventListener('mousedown', event => {
+        const item = event.target.closest('.combo-item');
+        if (!item) return;
+        input.value = item.dataset.value;
+        list.hidden = true;
+    });
+    // клик вне компонента закрывает список
+    document.addEventListener('click', event => {
+        if (!combo.contains(event.target)) list.hidden = true;
+    });
 });
 </script>
 

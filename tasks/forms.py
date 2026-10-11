@@ -7,4 +7,5 @@ class TaskForm(forms.ModelForm):
         fields = ["title", "description", "category", "deadline"]
         widgets = {
             "deadline": forms.DateInput(attrs={"type": "date"}),
+            "category": forms.TextInput(attrs={"placeholder": "Выберите или введите", "autocomplete": "off"}),
         }

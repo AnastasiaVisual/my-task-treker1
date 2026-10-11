@@ -5,11 +5,26 @@ from .models import Task
 from django.contrib.auth.decorators import login_required
 from .forms import TaskForm
 
+DEFAULT_CATEGORIES = ["Спорт", "Чтение", "Работа", "Учеба", "Здоровье", "Музыка", "Сон"]
+
+def get_category_options(user):
+    used =(
+        Task.objects.filter(owner=user)
+        .exclude( category="")
+         .values_list("category", flat=True)
+         .distinct() 
+    )
+    return sorted(set(DEFAULT_CATEGORIES) | set(used))
+
 @login_required
 def task_list(request):   
     tasks = Task.objects.filter(owner=request.user)
     form = TaskForm()
-    return render(request, 'tasks/task_list.html', {'tasks': tasks, 'form': form})
+    return render(
+        request, 'tasks/task_list.html', {
+            'tasks': tasks,
+            'form': form,
+            "categories": get_category_options(request.user),})
 
 @login_required
 def toggle_task_done(request, pk):
@@ -36,4 +51,4 @@ def task_create(request):
         return JsonResponse({"success": False, "errors": form.errors}, status=400)
     else:
         form = TaskForm()
-    return render(request, "tasks/task_form.html", {'form': form, "tasks": Task.objects.filter(owner=request.user)})
+    return render(request, "tasks/task_form.html", {'form': form,"categories": get_category_options(request.user), "tasks": Task.objects.filter(owner=request.user)})
